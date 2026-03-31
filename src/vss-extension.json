@@ -2,10 +2,10 @@
     "manifestVersion": 1,
     "id": "template-hub",
     "publisher": "MoimHossain",
-    "version": "0.0.19",
+    "version": "0.0.21",
     "name": "Template Hub",
     "description": "Azure DevOps extension for managing and governing templates across your organization.",
-    "public": false,
+    "public": true,
     "categories": [
         "Azure Repos"
     ],
@@ -83,6 +83,11 @@
             }
         }
     ],
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
     "files": [
         {
             "path": "assets",
