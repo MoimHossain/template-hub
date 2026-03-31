@@ -41,6 +41,26 @@ export interface IGitTag {
     url: string;
 }
 
+export interface ITemplateUsage {
+    id: string;
+    pipelineId: string;
+    pipelineName: string;
+    buildId: string;
+    projectId: string;
+    projectName: string;
+    orgName: string;
+    templateId: string;
+    templateName: string;
+    repositoryId: string;
+    repositoryName: string;
+    ref: string;
+    commitId: string;
+    matchedVersionId: string;
+    matchedVersionTag: string;
+    matchedVersionStatus: string;
+    lastRunOn: string;
+}
+
 export const DEFAULT_ARCHETYPES = [
     "Azure Container Apps",
     "Azure Functions",

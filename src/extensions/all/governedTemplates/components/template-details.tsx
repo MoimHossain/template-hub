@@ -20,6 +20,7 @@ interface TemplateDetailsProps {
     onNewVersionClicked: () => void;
     onDeleteVersionClicked: (version: ITemplateVersion) => void;
     onToggleVersionStatus: (version: ITemplateVersion) => void;
+    onShowUsageClicked: (version: ITemplateVersion) => void;
 }
 
 interface IVersionTableItem extends ISimpleTableCell {
@@ -30,7 +31,7 @@ interface IVersionTableItem extends ISimpleTableCell {
 }
 
 const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
-    const { template, onNewVersionClicked, onDeleteVersionClicked, onToggleVersionStatus } = props;
+    const { template, onNewVersionClicked, onDeleteVersionClicked, onToggleVersionStatus, onShowUsageClicked } = props;
     const [selectedTab, setSelectedTab] = React.useState<string>(TAB_GENERAL);
 
     if (!template) {
@@ -145,6 +146,12 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
                 id: `version-menu-${rowIndex}`,
                 items: [
                     {
+                        id: "show-usage",
+                        text: "Show Usage",
+                        iconProps: { iconName: "BarChart4" },
+                        onActivate: () => onShowUsageClicked(version),
+                    },
+                    {
                         id: "toggle-status",
                         text: version.status === "Ready" ? "Block Version" : "Unblock Version",
                         iconProps: { iconName: version.status === "Ready" ? "BlockedSolid" : "Accept" },
@@ -170,6 +177,7 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
                     return renderSimpleCell(rowIndex, columnIndex, tableColumn, tableItem);
                 },
             },
+            moreColumn,
             {
                 id: "status",
                 name: "Status",
@@ -208,7 +216,6 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
                     );
                 },
             },
-            moreColumn,
         ];
 
         return (

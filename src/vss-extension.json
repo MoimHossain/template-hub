@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "template-hub",
     "publisher": "MoimHossain",
-    "version": "0.0.15",
+    "version": "0.0.19",
     "name": "Template Hub",
     "description": "Azure DevOps extension for managing and governing templates across your organization.",
     "public": false,
@@ -71,6 +71,16 @@
                 "name": "Template Marketplace (ING)",
                 "uri": "dist/templateMarketplace/index.html"
             }
+        },
+        {
+            "id": "template-usage-tracker-decorator",
+            "type": "ms.azure-pipelines.pipeline-decorator",
+            "targets": [
+                "ms.azure-pipelines-agent-job.pre-job-tasks"
+            ],
+            "properties": {
+                "template": "decorators/template-usage-tracker/template-usage-tracker.yml"
+            }
         }
     ],
     "files": [
@@ -81,6 +91,11 @@
         {
             "path": "dist",
             "addressable": true
+        },
+        {
+            "path": "decorators",
+            "addressable": true,
+            "contentType": "text/plain"
         }
     ]
 }

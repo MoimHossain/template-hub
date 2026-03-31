@@ -4,12 +4,13 @@ import { GitRestClient } from "azure-devops-extension-api/Git";
 import DocumentService from "./document-service";
 import {
     IGovernedTemplate, ITemplateVersion, IGitTag,
-    User, generateId, DEFAULT_ARCHETYPES
+    ITemplateUsage, User, generateId, DEFAULT_ARCHETYPES
 } from "../schemas";
 
 const COLLECTION_NAME = "governed-templates";
 const ARCHETYPES_COLLECTION = "archetypes";
 const ARCHETYPES_DOC_ID = "archetype-list";
+const USAGE_COLLECTION = "template-usage";
 
 function getCurrentUser(): User {
     const u = SDK.getUser();
@@ -177,6 +178,28 @@ class TemplateService {
             console.error("Failed to get project info:", error);
         }
         return null;
+    }
+
+    /** Returns usage records for a specific template version. */
+    public async getVersionUsage(templateId: string, versionId: string): Promise<ITemplateUsage[]> {
+        try {
+            const docs = await this.documentService.listDocuments(USAGE_COLLECTION, []);
+            return (docs as ITemplateUsage[]).filter(
+                d => d.templateId === templateId && d.matchedVersionId === versionId
+            );
+        } catch {
+            return [];
+        }
+    }
+
+    /** Returns all usage records for a template (across all versions). */
+    public async getTemplateUsage(templateId: string): Promise<ITemplateUsage[]> {
+        try {
+            const docs = await this.documentService.listDocuments(USAGE_COLLECTION, []);
+            return (docs as ITemplateUsage[]).filter(d => d.templateId === templateId);
+        } catch {
+            return [];
+        }
     }
 
     /** Returns the merged set of default + user-added archetypes, sorted. */

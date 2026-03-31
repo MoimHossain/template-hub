@@ -1,0 +1,189 @@
+steps:
+# Iterate over all repository resources to find template repos
+- ${{ each repo in resources.repositories }}:
+  # Skip the pipeline's own repo (self)
+  - ${{ if ne(repo.key, 'self') }}:
+    - task: PowerShell@2
+      displayName: '[Template Hub] Track template: ${{ repo.key }}'
+      condition: and(always(), eq(variables['System.JobAttempt'], '1'))
+      continueOnError: true
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          Write-Host "=============================================="
+          Write-Host "  TEMPLATE HUB - USAGE TRACKING"
+          Write-Host "=============================================="
+          Write-Host ""
+
+          # ── Extension identity (must match vss-extension.json) ──────
+          $publisherName = "MoimHossain"
+          $extensionName = "template-hub"
+
+          # ── Extract org name from CollectionUri ─────────────────────
+          $collectionUri = "$(System.CollectionUri)" -replace "/$", ""
+          if ($collectionUri -match "dev\.azure\.com/(.+)$") {
+            $orgName = $Matches[1]
+          } elseif ($collectionUri -match "^https?://([^.]+)\.visualstudio\.com") {
+            $orgName = $Matches[1]
+          } else {
+            $orgName = $collectionUri.Split('/')[-1]
+          }
+
+          $baseUrl = "https://extmgmt.dev.azure.com/$orgName/_apis/ExtensionManagement/InstalledExtensions/$publisherName/$extensionName/Data/Scopes/Default/Current/Collections"
+          $headers = @{
+            "Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"
+            "Content-Type"  = "application/json"
+          }
+
+          # ── Template repo info (injected at compile time) ──────────
+          $templateRepoAlias   = "${{ repo.key }}"
+          $templateRepoId      = "${{ resources.repositories[repo.key].id }}"
+          $templateRepoName    = "${{ resources.repositories[repo.key].name }}"
+          $templateRepoType    = "${{ resources.repositories[repo.key].type }}"
+          $templateRepoRef     = "${{ resources.repositories[repo.key].ref }}"
+          $templateRepoVersion = "${{ resources.repositories[repo.key].version }}"
+          $templateRepoProject = "${{ resources.repositories[repo.key].project }}"
+
+          Write-Host "Pipeline:   $(Build.DefinitionName) (ID: $(System.DefinitionId))"
+          Write-Host "Build:      $(Build.BuildId)"
+          Write-Host "Project:    $(System.TeamProject)"
+          Write-Host "Repo alias: $templateRepoAlias"
+          Write-Host "Repo ID:    $templateRepoId"
+          Write-Host "Repo name:  $templateRepoName"
+          Write-Host "Ref:        $templateRepoRef"
+          Write-Host "Commit:     $templateRepoVersion"
+          Write-Host ""
+
+          # ── Step 1: Read all governed templates ─────────────────────
+          $templates = @()
+          try {
+            $templatesUrl = "$baseUrl/governed-templates/Documents?api-version=6.0-preview.1"
+            $response = Invoke-RestMethod -Uri $templatesUrl -Headers $headers -Method GET -ErrorAction Stop
+
+            # Handle both array and { value: [...] } response shapes
+            if ($response -is [System.Array]) {
+              $templates = $response
+            } elseif ($response.value) {
+              $templates = $response.value
+            } else {
+              $templates = @($response)
+            }
+            Write-Host "Retrieved $($templates.Count) governed template(s) from extension data."
+          } catch {
+            Write-Host "##[warning]Could not read governed templates: $_"
+            Write-Host "This is expected if no templates have been registered yet."
+            exit 0
+          }
+
+          if ($templates.Count -eq 0) {
+            Write-Host "No governed templates registered. Skipping."
+            exit 0
+          }
+
+          # ── Step 2: Match repo against governed templates ───────────
+          $matched = $null
+
+          # Primary match: by repository ID (most reliable)
+          foreach ($t in $templates) {
+            if ($t.repositoryId -eq $templateRepoId) {
+              $matched = $t
+              break
+            }
+          }
+
+          # Fallback: match by repo name (handles ProjectName/RepoName format)
+          if (-not $matched) {
+            $shortName = ($templateRepoName -split '/')[-1]
+            foreach ($t in $templates) {
+              if ($t.repoName -eq $shortName -or $t.repoName -eq $templateRepoName) {
+                $matched = $t
+                break
+              }
+            }
+          }
+
+          if (-not $matched) {
+            Write-Host "No governed template matched for repository '$templateRepoName' ($templateRepoId). Skipping."
+            exit 0
+          }
+
+          Write-Host "Matched governed template: $($matched.name) (id: $($matched.id))"
+
+          # ── Step 3: Check if ref matches a known version ────────────
+          $matchedVersionId  = ""
+          $matchedVersionTag = ""
+          $matchedVersionStatus = ""
+
+          if ($matched.versions) {
+            foreach ($v in $matched.versions) {
+              if ($v.tagName -eq $templateRepoRef) {
+                $matchedVersionId     = $v.versionId
+                $matchedVersionTag    = $v.tagName
+                $matchedVersionStatus = $v.status
+                break
+              }
+            }
+          }
+
+          if ($matchedVersionTag) {
+            Write-Host "Matched version: $matchedVersionTag (status: $matchedVersionStatus)"
+          } else {
+            Write-Host "No registered version matched ref '$templateRepoRef'."
+          }
+
+          # ── Step 4: Create/update usage tracking document ───────────
+          $usageId = "usage-$(System.DefinitionId)-$($matched.id)"
+
+          $usageDoc = @{
+            id                   = $usageId
+            pipelineId           = "$(System.DefinitionId)"
+            pipelineName         = "$(Build.DefinitionName)"
+            buildId              = "$(Build.BuildId)"
+            projectId            = "$(System.TeamProjectId)"
+            projectName          = "$(System.TeamProject)"
+            orgName              = $orgName
+            templateId           = $matched.id
+            templateName         = $matched.name
+            repositoryId         = $templateRepoId
+            repositoryName       = ($templateRepoName -split '/')[-1]
+            ref                  = $templateRepoRef
+            commitId             = $templateRepoVersion
+            matchedVersionId     = $matchedVersionId
+            matchedVersionTag    = $matchedVersionTag
+            matchedVersionStatus = $matchedVersionStatus
+            lastRunOn            = (Get-Date -Format "o")
+          }
+
+          # Try to read existing document to get its __etag for updates
+          try {
+            $existingUrl = "$baseUrl/template-usage/Documents/$usageId`?api-version=6.0-preview.1"
+            $existing = Invoke-RestMethod -Uri $existingUrl -Headers $headers -Method GET -ErrorAction Stop
+            if ($existing.__etag) {
+              $usageDoc["__etag"] = $existing.__etag
+              Write-Host "Updating existing usage document (etag: $($existing.__etag))."
+            }
+          } catch {
+            Write-Host "No existing usage document found - creating new one."
+          }
+
+          $usageJson = $usageDoc | ConvertTo-Json -Depth 10
+
+          Write-Host ""
+          Write-Host "Usage document:"
+          Write-Host $usageJson
+          Write-Host ""
+
+          try {
+            $usageUrl = "$baseUrl/template-usage/Documents?api-version=6.0-preview.1"
+            Invoke-RestMethod -Uri $usageUrl -Headers $headers -Method PUT -Body $usageJson -ErrorAction Stop | Out-Null
+            Write-Host "Template usage recorded successfully."
+          } catch {
+            Write-Host "##[warning]Could not write usage document: $_"
+          }
+
+          Write-Host ""
+          Write-Host "Template usage tracking complete."
+          Write-Host "=============================================="

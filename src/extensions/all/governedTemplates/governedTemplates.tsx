@@ -14,6 +14,7 @@ import TemplateList from "./components/template-list";
 import TemplateDetails from "./components/template-details";
 import NewTemplatePanel from "./components/new-template-panel";
 import NewVersionPanel from "./components/new-version-panel";
+import UsageDialog from "./components/usage-dialog";
 
 interface IState {
     sdkReady: boolean;
@@ -29,6 +30,8 @@ interface IState {
     showDeleteVersionDialog: boolean;
     templateToDelete: IGovernedTemplate | null;
     versionToDelete: ITemplateVersion | null;
+    showUsageDialog: boolean;
+    versionForUsage: ITemplateVersion | null;
 }
 
 class GovernedTemplatesHub extends React.Component<{}, IState> {
@@ -50,6 +53,8 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
             showDeleteVersionDialog: false,
             templateToDelete: null,
             versionToDelete: null,
+            showUsageDialog: false,
+            versionForUsage: null,
         };
     }
 
@@ -117,6 +122,10 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
         }
     };
 
+    private handleShowUsageClicked = (version: ITemplateVersion) => {
+        this.setState({ showUsageDialog: true, versionForUsage: version });
+    };
+
     private handleConfirmDeleteTemplate = async () => {
         const { templateToDelete } = this.state;
         if (!templateToDelete) return;
@@ -158,6 +167,7 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
             showDeleteTemplateDialog, showDeleteVersionDialog,
             templateToDelete, versionToDelete, sdkReady,
             checkingAccess, authorization,
+            showUsageDialog, versionForUsage,
         } = this.state;
 
         if (!sdkReady || checkingAccess) {
@@ -228,6 +238,7 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
                             onNewVersionClicked={this.handleNewVersionClicked}
                             onDeleteVersionClicked={this.handleDeleteVersionClicked}
                             onToggleVersionStatus={this.handleToggleVersionStatus}
+                            onShowUsageClicked={this.handleShowUsageClicked}
                         />
                     )}
                 />
@@ -291,6 +302,15 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
                             This action cannot be undone.
                         </p>
                     </Dialog>
+                )}
+
+                {showUsageDialog && versionForUsage && selectedTemplate && (
+                    <UsageDialog
+                        template={selectedTemplate}
+                        version={versionForUsage}
+                        templateService={this.templateService}
+                        onDismiss={() => this.setState({ showUsageDialog: false, versionForUsage: null })}
+                    />
                 )}
             </div>
         );
