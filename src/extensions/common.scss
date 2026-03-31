@@ -17,3 +17,29 @@
     margin: 0;
     line-height: 1.5;
 }
+
+.page-content-top {
+    padding: 16px 32px;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-center {
+    align-items: center;
+}
+
+.flex-grow {
+    flex-grow: 1;
+}
+
+.justify-center {
+    justify-content: center;
+}

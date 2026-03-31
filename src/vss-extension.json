@@ -19,6 +19,7 @@
     ],
     "scopes": [
         "vso.project",
+        "vso.graph",
         "vso.extension.data_write"
     ],
     "contributions": [
