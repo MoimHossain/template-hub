@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "template-hub",
     "publisher": "MoimHossain",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "name": "Template Hub",
     "description": "Azure DevOps extension for managing and governing templates across your organization.",
     "public": false,
@@ -19,6 +19,7 @@
     ],
     "scopes": [
         "vso.project",
+        "vso.code",
         "vso.graph",
         "vso.extension.data_write"
     ],
@@ -37,6 +38,22 @@
                 },
                 "name": "Template Hub",
                 "uri": "dist/organizationSettings/index.html"
+            }
+        },
+        {
+            "id": "governed-templates",
+            "type": "ms.vss-web.hub",
+            "targets": [
+                "ms.vss-build-web.build-release-hub-group"
+            ],
+            "properties": {
+                "order": 100,
+                "icon": {
+                    "light": "assets/images/governance.png",
+                    "dark": "assets/images/governance.png"
+                },
+                "name": "Governed Templates",
+                "uri": "dist/governedTemplates/index.html"
             }
         }
     ],

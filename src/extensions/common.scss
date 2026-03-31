@@ -43,3 +43,191 @@
 .justify-center {
     justify-content: center;
 }
+
+/* Template List */
+.template-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.template-list-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.15s;
+}
+
+.template-list-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.template-list-item.selected {
+    background: rgba(0, 120, 212, 0.14);
+    border-left: 3px solid #0078d4;
+}
+
+.template-list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.template-list-item-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.template-list-item-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.template-list-item-desc {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #999;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.template-list-item-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.template-list-item:hover .template-list-item-actions {
+    opacity: 1;
+}
+
+.template-action-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: #ccc;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.template-action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.template-action-btn.danger:hover {
+    background: rgba(209, 52, 56, 0.2);
+    color: #e74c4c;
+}
+
+.template-category-pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    background: rgba(0, 120, 212, 0.15);
+    color: #79b8ff;
+}
+
+.template-version-count {
+    font-size: 12px;
+    color: #888;
+}
+
+/* Template Details */
+.template-details-section {
+    padding: 4px 0;
+}
+
+.template-property-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.template-property-table tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.template-property-table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+
+.property-label {
+    width: 140px;
+    font-weight: 600;
+    color: #999;
+    font-size: 13px;
+}
+
+.property-value {
+    font-size: 13px;
+}
+
+.template-versions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.template-versions-table th {
+    text-align: left;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #999;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.template-versions-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.version-tag-name {
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.version-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.text-muted {
+    color: #888;
+    font-size: 12px;
+}
+
+.selected-tag-info {
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.v-scroll-auto {
+    overflow-y: auto;
+}
