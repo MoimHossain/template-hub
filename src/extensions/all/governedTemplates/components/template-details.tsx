@@ -6,6 +6,9 @@ import { Status, Statuses, StatusSize } from "azure-devops-ui/Status";
 import { Ago } from "azure-devops-ui/Ago";
 import { AgoFormat } from "azure-devops-ui/Utilities/Date";
 import { ZeroData } from "azure-devops-ui/ZeroData";
+import { Table, renderSimpleCell, ISimpleTableCell, ColumnMore, TableColumnLayout } from "azure-devops-ui/Table";
+import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
+import { ITableColumn } from "azure-devops-ui/Table";
 import { IGovernedTemplate, ITemplateVersion } from "../../../shared/schemas";
 
 const TAB_GENERAL = "general";
@@ -16,6 +19,13 @@ interface TemplateDetailsProps {
     onNewVersionClicked: () => void;
     onDeleteVersionClicked: (version: ITemplateVersion) => void;
     onToggleVersionStatus: (version: ITemplateVersion) => void;
+}
+
+interface IVersionTableItem extends ISimpleTableCell {
+    tagName: string;
+    status: string;
+    publishedBy: string;
+    publishedOn: string;
 }
 
 const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
@@ -119,66 +129,94 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
             );
         }
 
+        const versionItems: IVersionTableItem[] = versions.map(v => ({
+            tagName: v.tagName.replace("refs/tags/", ""),
+            status: v.status,
+            publishedBy: v.publishedBy?.displayName || "",
+            publishedOn: v.publishedOn || "",
+        }));
+
+        const itemProvider = new ArrayItemProvider<IVersionTableItem>(versionItems);
+
+        const moreColumn = new ColumnMore<IVersionTableItem>((item, rowIndex) => {
+            const version = versions[rowIndex];
+            return {
+                id: `version-menu-${rowIndex}`,
+                items: [
+                    {
+                        id: "toggle-status",
+                        text: version.status === "Ready" ? "Block Version" : "Unblock Version",
+                        iconProps: { iconName: version.status === "Ready" ? "BlockedSolid" : "Accept" },
+                        onActivate: () => onToggleVersionStatus(version),
+                    },
+                    {
+                        id: "delete",
+                        text: "Delete Version",
+                        iconProps: { iconName: "Delete" },
+                        onActivate: () => onDeleteVersionClicked(version),
+                    },
+                ],
+            };
+        });
+
+        const columns: Array<ITableColumn<IVersionTableItem>> = [
+            {
+                id: "tagName",
+                name: "Tag",
+                width: -40,
+                columnLayout: TableColumnLayout.singleLinePrefix,
+                renderCell: (rowIndex, columnIndex, tableColumn, tableItem) => {
+                    return renderSimpleCell(rowIndex, columnIndex, tableColumn, tableItem);
+                },
+            },
+            {
+                id: "status",
+                name: "Status",
+                width: -20,
+                renderCell: (_rowIndex, _columnIndex, _tableColumn, tableItem) => {
+                    return (
+                        <td className="bolt-table-cell" key="status">
+                            <div className="flex-row flex-center" style={{ gap: 6 }}>
+                                <Status
+                                    {...(tableItem.status === "Ready" ? Statuses.Success : Statuses.Failed)}
+                                    size={StatusSize.m}
+                                />
+                                <span>{tableItem.status}</span>
+                            </div>
+                        </td>
+                    );
+                },
+            },
+            {
+                id: "publishedBy",
+                name: "Published By",
+                width: -25,
+                renderCell: renderSimpleCell,
+            },
+            {
+                id: "publishedOn",
+                name: "Published On",
+                width: -15,
+                renderCell: (_rowIndex, _columnIndex, _tableColumn, tableItem) => {
+                    return (
+                        <td className="bolt-table-cell" key="publishedOn">
+                            {tableItem.publishedOn && (
+                                <Ago date={new Date(tableItem.publishedOn)} format={AgoFormat.Extended} />
+                            )}
+                        </td>
+                    );
+                },
+            },
+            moreColumn,
+        ];
+
         return (
             <div className="template-details-section">
-                <table className="template-versions-table">
-                    <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th>Status</th>
-                            <th>Published By</th>
-                            <th>Published On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {versions.map((version) => (
-                            <tr key={version.versionId}>
-                                <td className="version-tag-name">
-                                    {version.tagName.replace("refs/tags/", "")}
-                                </td>
-                                <td>
-                                    <Status
-                                        {...(version.status === "Ready" ? Statuses.Success : Statuses.Failed)}
-                                        size={StatusSize.m}
-                                    />
-                                    <span style={{ marginLeft: 6 }}>{version.status}</span>
-                                </td>
-                                <td>
-                                    <div className="user-info">
-                                        {version.publishedBy?.imageUrl && (
-                                            <img className="user-avatar" src={version.publishedBy.imageUrl} alt="" />
-                                        )}
-                                        <span>{version.publishedBy?.displayName}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    {version.publishedOn && (
-                                        <Ago date={new Date(version.publishedOn)} format={AgoFormat.Extended} />
-                                    )}
-                                </td>
-                                <td>
-                                    <div className="version-actions">
-                                        <button
-                                            className="template-action-btn"
-                                            title={version.status === "Ready" ? "Block" : "Unblock"}
-                                            onClick={() => onToggleVersionStatus(version)}
-                                        >
-                                            {version.status === "Ready" ? "⊘" : "✓"}
-                                        </button>
-                                        <button
-                                            className="template-action-btn danger"
-                                            title="Delete"
-                                            onClick={() => onDeleteVersionClicked(version)}
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <Table<IVersionTableItem>
+                    columns={columns}
+                    itemProvider={itemProvider}
+                    role="table"
+                />
             </div>
         );
     };

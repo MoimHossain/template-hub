@@ -111,6 +111,10 @@ html, body {
     opacity: 1;
 }
 
+.template-list-item.selected .template-list-item-actions {
+    opacity: 1;
+}
+
 .template-action-btn {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -237,6 +241,7 @@ html, body {
 
 /* Panel form controls */
 .bolt-panel-content .bolt-textfield,
+.bolt-panel-content .bolt-textfield.bolt-textfield-default-width,
 .bolt-panel-content .bolt-dropdown,
 .bolt-panel-content .bolt-formitem {
     width: 100%;

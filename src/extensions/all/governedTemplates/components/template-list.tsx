@@ -3,6 +3,17 @@ import { Header, TitleSize } from "azure-devops-ui/Header";
 import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { ZeroData } from "azure-devops-ui/ZeroData";
+import {
+    ColumnMore,
+    Table,
+    TwoLineTableCell,
+    SimpleTableCell,
+    ITableColumn,
+    TableColumnLayout,
+} from "azure-devops-ui/Table";
+import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
+import { Pill, PillSize, PillVariant } from "azure-devops-ui/Pill";
+import { ListSelection } from "azure-devops-ui/List";
 import { IGovernedTemplate } from "../../../shared/schemas";
 
 interface TemplateListProps {
@@ -22,6 +33,80 @@ const TemplateList: React.FC<TemplateListProps> = (props) => {
         onTemplateSelected, onNewTemplateClicked, onRefreshClicked,
         onDeleteTemplateClicked, onNewVersionClicked,
     } = props;
+
+    const selectionRef = React.useRef(new ListSelection({ selectOnFocus: false }));
+    const selection = selectionRef.current;
+
+    const itemProvider = React.useMemo(
+        () => new ArrayItemProvider<IGovernedTemplate>(templates),
+        [templates]
+    );
+
+    // Sync table selection with external selectedTemplate prop
+    React.useEffect(() => {
+        if (selectedTemplate && templates.length > 0) {
+            const index = templates.findIndex(t => t.id === selectedTemplate.id);
+            if (index >= 0) {
+                selection.select(index);
+            }
+        }
+    }, [selectedTemplate, templates]);
+
+    const moreColumn = new ColumnMore<IGovernedTemplate>((item) => ({
+        id: `template-menu-${item.id}`,
+        items: [
+            {
+                id: "new-version",
+                text: "New Version",
+                iconProps: { iconName: "Add" },
+                onActivate: () => onNewVersionClicked(item),
+            },
+            {
+                id: "delete",
+                text: "Delete",
+                iconProps: { iconName: "Delete" },
+                onActivate: () => onDeleteTemplateClicked(item),
+            },
+        ],
+    }));
+
+    const columns: ITableColumn<IGovernedTemplate>[] = [
+        {
+            id: "name",
+            name: "Template",
+            width: -100,
+            columnLayout: TableColumnLayout.twoLine,
+            renderCell: (rowIndex, columnIndex, tableColumn, item) => (
+                <TwoLineTableCell
+                    columnIndex={columnIndex}
+                    tableColumn={tableColumn}
+                    line1={
+                        <span className="fontWeightSemiBold font-weight-semibold text-ellipsis">
+                            {item.name}
+                        </span>
+                    }
+                    line2={
+                        <span className="fontSize font-size secondary-text text-ellipsis">
+                            {item.description || "No description"}
+                        </span>
+                    }
+                />
+            ),
+        },
+        {
+            id: "category",
+            name: "Category",
+            width: 160,
+            renderCell: (rowIndex, columnIndex, tableColumn, item) => (
+                <SimpleTableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+                    <Pill size={PillSize.compact} variant={PillVariant.outlined}>
+                        {item.category}
+                    </Pill>
+                </SimpleTableCell>
+            ),
+        },
+        moreColumn,
+    ];
 
     const commandBarItems: IHeaderCommandBarItem[] = [
         {
@@ -62,48 +147,16 @@ const TemplateList: React.FC<TemplateListProps> = (props) => {
         }
 
         return (
-            <div className="template-list">
-                {templates.map((template) => {
-                    const isSelected = selectedTemplate?.id === template.id;
-                    const versionCount = (template.versions || []).length;
-                    return (
-                        <div
-                            key={template.id}
-                            className={`template-list-item ${isSelected ? "selected" : ""}`}
-                            onClick={() => onTemplateSelected(template)}
-                        >
-                            <div className="template-list-item-header">
-                                <div className="template-list-item-name">{template.name}</div>
-                                <div className="template-list-item-actions">
-                                    <button
-                                        className="template-action-btn"
-                                        title="New Version"
-                                        onClick={(e) => { e.stopPropagation(); onNewVersionClicked(template); }}
-                                    >
-                                        +
-                                    </button>
-                                    <button
-                                        className="template-action-btn danger"
-                                        title="Delete"
-                                        onClick={(e) => { e.stopPropagation(); onDeleteTemplateClicked(template); }}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="template-list-item-meta">
-                                <span className="template-category-pill">{template.category}</span>
-                                <span className="template-version-count">
-                                    {versionCount} version{versionCount !== 1 ? "s" : ""}
-                                </span>
-                            </div>
-                            {template.description && (
-                                <div className="template-list-item-desc">{template.description}</div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+            <Table
+                columns={columns}
+                itemProvider={itemProvider}
+                showHeader={false}
+                selection={selection}
+                singleClickActivation={true}
+                onActivate={(event, row) => {
+                    onTemplateSelected(templates[row.index]);
+                }}
+            />
         );
     };
 

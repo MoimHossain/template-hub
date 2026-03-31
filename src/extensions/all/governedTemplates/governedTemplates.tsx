@@ -5,8 +5,10 @@ import { showRootComponent } from "../../common";
 import { Splitter, SplitterElementPosition, SplitterDirection } from "azure-devops-ui/Splitter";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { Dialog } from "azure-devops-ui/Dialog";
+import { ZeroData, ZeroDataActionType } from "azure-devops-ui/ZeroData";
 
 import { IGovernedTemplate, ITemplateVersion } from "../../shared/schemas";
+import { checkUserAuthorization, IUserAuthorization } from "../../shared/identity-utils";
 import TemplateService from "../../shared/services/template-service";
 import TemplateList from "./components/template-list";
 import TemplateDetails from "./components/template-details";
@@ -15,6 +17,8 @@ import NewVersionPanel from "./components/new-version-panel";
 
 interface IState {
     sdkReady: boolean;
+    checkingAccess: boolean;
+    authorization: IUserAuthorization | undefined;
     loading: boolean;
     collapsed: boolean;
     templates: IGovernedTemplate[];
@@ -34,6 +38,8 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
         super(props);
         this.state = {
             sdkReady: false,
+            checkingAccess: true,
+            authorization: undefined,
             loading: true,
             collapsed: false,
             templates: [],
@@ -51,7 +57,16 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
         await SDK.init();
         await SDK.ready();
         this.setState({ sdkReady: true });
-        await this.loadTemplates();
+
+        // Check user authorization before loading data
+        const authorization = await checkUserAuthorization();
+        this.setState({ checkingAccess: false, authorization });
+
+        if (authorization.isAuthorized) {
+            await this.loadTemplates();
+        } else {
+            this.setState({ loading: false });
+        }
     }
 
     private async loadTemplates() {
@@ -142,12 +157,41 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
             showNewTemplatePanel, showNewVersionPanel,
             showDeleteTemplateDialog, showDeleteVersionDialog,
             templateToDelete, versionToDelete, sdkReady,
+            checkingAccess, authorization,
         } = this.state;
 
-        if (!sdkReady) {
+        if (!sdkReady || checkingAccess) {
             return (
-                <div className="flex-row flex-center justify-center" style={{ height: "100%" }}>
-                    <Spinner size={SpinnerSize.large} label="Initializing..." />
+                <div className="flex-row flex-center justify-center" style={{ height: "100%", width: "100%" }}>
+                    <Spinner size={SpinnerSize.large} label="Determining your access level..." />
+                </div>
+            );
+        }
+
+        if (!authorization || !authorization.isAuthorized) {
+            return (
+                <div className="flex-column flex-center justify-center" style={{ height: "100%", width: "100%" }}>
+                    <ZeroData
+                        primaryText="Access Restricted"
+                        secondaryText={
+                            <span>
+                                You need to be a <strong>Project Collection Administrator</strong> or
+                                a <strong>Project Administrator</strong> to manage templates.
+                                Please contact your organization or project administrator to request
+                                the appropriate permissions.
+                            </span>
+                        }
+                        imagePath=""
+                        imageAltText=""
+                        actionText="Learn more about permissions"
+                        actionType={ZeroDataActionType.ctaButton}
+                        onActionClick={() => {
+                            window.open(
+                                "https://learn.microsoft.com/en-us/azure/devops/organizations/security/look-up-project-collection-administrators",
+                                "_blank"
+                            );
+                        }}
+                    />
                 </div>
             );
         }
