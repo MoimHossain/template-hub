@@ -2,8 +2,6 @@ import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import { showRootComponent } from "../../common";
 
-import { Surface, SurfaceBackground } from "azure-devops-ui/Surface";
-import { Page } from "azure-devops-ui/Page";
 import { Splitter, SplitterElementPosition, SplitterDirection } from "azure-devops-ui/Splitter";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { Dialog } from "azure-devops-ui/Dialog";
@@ -155,46 +153,40 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
         }
 
         return (
-            <Surface background={SurfaceBackground.neutral}>
-                <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-                <Page className="flex-column flex-grow">
-                    <div className="flex-grow" style={{ height: "100%", minHeight: 0 }}>
-                        <Splitter
-                            collapsed={collapsed}
-                            fixedElement={SplitterElementPosition.Near}
-                            splitterDirection={SplitterDirection.Vertical}
-                            initialFixedSize={380}
-                            minFixedSize={200}
-                            nearElementClassName="v-scroll-auto custom-scrollbar"
-                            farElementClassName="v-scroll-auto custom-scrollbar"
-                            onCollapsedChanged={(newCollapsed) => this.setState({ collapsed: newCollapsed })}
-                            onRenderNearElement={() => (
-                                <TemplateList
-                                    templates={templates}
-                                    loading={loading}
-                                    selectedTemplate={selectedTemplate}
-                                    onTemplateSelected={this.handleTemplateSelected}
-                                    onNewTemplateClicked={this.handleNewTemplateClicked}
-                                    onRefreshClicked={() => this.loadTemplates()}
-                                    onDeleteTemplateClicked={this.handleDeleteTemplateClicked}
-                                    onNewVersionClicked={(t) => {
-                                        this.setState({ selectedTemplate: t });
-                                        this.handleNewVersionClicked();
-                                    }}
-                                />
-                            )}
-                            onRenderFarElement={() => (
-                                <TemplateDetails
-                                    template={selectedTemplate}
-                                    onNewVersionClicked={this.handleNewVersionClicked}
-                                    onDeleteVersionClicked={this.handleDeleteVersionClicked}
-                                    onToggleVersionStatus={this.handleToggleVersionStatus}
-                                />
-                            )}
+            <div style={{ height: "99%", width: "100%", display: "flex" }}>
+                <Splitter
+                    collapsed={collapsed}
+                    fixedElement={SplitterElementPosition.Near}
+                    splitterDirection={SplitterDirection.Vertical}
+                    initialFixedSize={650}
+                    minFixedSize={400}
+                    nearElementClassName="v-scroll-auto custom-scrollbar"
+                    farElementClassName="v-scroll-auto custom-scrollbar"
+                    onCollapsedChanged={(newCollapsed) => this.setState({ collapsed: newCollapsed })}
+                    onRenderNearElement={() => (
+                        <TemplateList
+                            templates={templates}
+                            loading={loading}
+                            selectedTemplate={selectedTemplate}
+                            onTemplateSelected={this.handleTemplateSelected}
+                            onNewTemplateClicked={this.handleNewTemplateClicked}
+                            onRefreshClicked={() => this.loadTemplates()}
+                            onDeleteTemplateClicked={this.handleDeleteTemplateClicked}
+                            onNewVersionClicked={(t) => {
+                                this.setState({ selectedTemplate: t });
+                                this.handleNewVersionClicked();
+                            }}
                         />
-                    </div>
-                </Page>
-                </div>
+                    )}
+                    onRenderFarElement={() => (
+                        <TemplateDetails
+                            template={selectedTemplate}
+                            onNewVersionClicked={this.handleNewVersionClicked}
+                            onDeleteVersionClicked={this.handleDeleteVersionClicked}
+                            onToggleVersionStatus={this.handleToggleVersionStatus}
+                        />
+                    )}
+                />
 
                 {showNewTemplatePanel && (
                     <NewTemplatePanel
@@ -256,7 +248,7 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
                         </p>
                     </Dialog>
                 )}
-            </Surface>
+            </div>
         );
     }
 }

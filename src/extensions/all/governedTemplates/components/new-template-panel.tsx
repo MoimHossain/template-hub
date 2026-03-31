@@ -107,7 +107,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                     { text: "Create", primary: true, onClick: this.handleCreate, disabled: !this.isValid() },
                 ]}
             >
-                <div className="flex-column" style={{ gap: 16, padding: "0 4px" }}>
+                <div style={{ padding: "16px 0", display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
                     {error && (
                         <MessageBar severity={MessageBarSeverity.Error}>{error}</MessageBar>
                     )}
@@ -117,7 +117,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                             value={name}
                             onChange={(_, val) => this.setState({ name: val })}
                             placeholder="Enter template name"
-                            width={TextFieldWidth.auto}
+                            width={TextFieldWidth.standard}
                         />
                     </FormItem>
 
@@ -128,7 +128,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                             placeholder="Brief description of the template"
                             multiline={true}
                             rows={3}
-                            width={TextFieldWidth.auto}
+                            width={TextFieldWidth.standard}
                         />
                     </FormItem>
 
@@ -137,6 +137,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                             items={categoryItems}
                             selection={this.categorySelection}
                             placeholder="Select category"
+                            className="flex-grow"
                             onSelect={(_, item) => this.setState({ category: item.id! })}
                         />
                     </FormItem>
@@ -149,6 +150,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                                 items={repoItems}
                                 selection={this.repoSelection}
                                 placeholder="Select a repository"
+                                className="flex-grow"
                                 onSelect={(_, item) => {
                                     const repo = repos.find(r => r.id === item.id);
                                     this.setState({

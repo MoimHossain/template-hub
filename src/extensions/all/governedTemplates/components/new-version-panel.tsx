@@ -99,7 +99,7 @@ class NewVersionPanel extends React.Component<NewVersionPanelProps, IState> {
                     { text: "Publish", primary: true, onClick: this.handleCreate, disabled: !this.isValid() },
                 ]}
             >
-                <div className="flex-column" style={{ gap: 16, padding: "0 4px" }}>
+                <div style={{ padding: "16px 0", display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
                     {error && (
                         <MessageBar severity={MessageBarSeverity.Error}>{error}</MessageBar>
                     )}
@@ -120,6 +120,7 @@ class NewVersionPanel extends React.Component<NewVersionPanelProps, IState> {
                                 items={tagItems}
                                 selection={this.tagSelection}
                                 placeholder="Select a Git tag"
+                                className="flex-grow"
                                 onSelect={(_, item) => {
                                     const tag = tags.find(t => t.name === item.id);
                                     this.setState({ selectedTag: tag || null });
@@ -142,7 +143,7 @@ class NewVersionPanel extends React.Component<NewVersionPanelProps, IState> {
                             value={templateFilePath}
                             onChange={(_, val) => this.setState({ templateFilePath: val })}
                             placeholder="/templates/template.yml"
-                            width={TextFieldWidth.auto}
+                            width={TextFieldWidth.standard}
                         />
                     </FormItem>
 
@@ -151,7 +152,7 @@ class NewVersionPanel extends React.Component<NewVersionPanelProps, IState> {
                             value={helpUrl}
                             onChange={(_, val) => this.setState({ helpUrl: val })}
                             placeholder="https://docs.example.com/template-guide"
-                            width={TextFieldWidth.auto}
+                            width={TextFieldWidth.standard}
                         />
                     </FormItem>
 
