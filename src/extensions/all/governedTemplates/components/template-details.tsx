@@ -70,7 +70,7 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
                         <td className="property-value">{template.description || "—"}</td>
                     </tr>
                     <tr>
-                        <td className="property-label">Category</td>
+                        <td className="property-label">Archetype</td>
                         <td className="property-value">
                             <span className="template-category-pill">{template.category}</span>
                         </td>

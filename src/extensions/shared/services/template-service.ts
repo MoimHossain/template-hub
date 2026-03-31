@@ -4,10 +4,12 @@ import { GitRestClient } from "azure-devops-extension-api/Git";
 import DocumentService from "./document-service";
 import {
     IGovernedTemplate, ITemplateVersion, IGitTag,
-    User, generateId
+    User, generateId, DEFAULT_ARCHETYPES
 } from "../schemas";
 
 const COLLECTION_NAME = "governed-templates";
+const ARCHETYPES_COLLECTION = "archetypes";
+const ARCHETYPES_DOC_ID = "archetype-list";
 
 function getCurrentUser(): User {
     const u = SDK.getUser();
@@ -175,6 +177,47 @@ class TemplateService {
             console.error("Failed to get project info:", error);
         }
         return null;
+    }
+
+    /** Returns the merged set of default + user-added archetypes, sorted. */
+    public async getArchetypes(): Promise<string[]> {
+        try {
+            const doc = await this.documentService.getDocumentById(
+                ARCHETYPES_COLLECTION, ARCHETYPES_DOC_ID, null
+            );
+            const custom: string[] = (doc && doc.archetypes) || [];
+            const merged = new Set([...DEFAULT_ARCHETYPES, ...custom]);
+            return Array.from(merged).sort();
+        } catch {
+            return [...DEFAULT_ARCHETYPES].sort();
+        }
+    }
+
+    /** Persists a new archetype if it doesn't already exist. */
+    public async addArchetype(name: string): Promise<void> {
+        if (!name || !name.trim()) return;
+        const trimmed = name.trim();
+        try {
+            const doc = await this.documentService.getDocumentById(
+                ARCHETYPES_COLLECTION, ARCHETYPES_DOC_ID, null
+            );
+            const existing: string[] = (doc && doc.archetypes) || [];
+            // Skip if it already exists (either default or custom)
+            if (DEFAULT_ARCHETYPES.includes(trimmed) || existing.includes(trimmed)) {
+                return;
+            }
+            existing.push(trimmed);
+            await this.documentService.updateDocument(
+                ARCHETYPES_COLLECTION, ARCHETYPES_DOC_ID,
+                { id: ARCHETYPES_DOC_ID, archetypes: existing }
+            );
+        } catch {
+            // First time — create the document
+            await this.documentService.updateDocument(
+                ARCHETYPES_COLLECTION, ARCHETYPES_DOC_ID,
+                { id: ARCHETYPES_DOC_ID, archetypes: [trimmed] }
+            );
+        }
     }
 }
 

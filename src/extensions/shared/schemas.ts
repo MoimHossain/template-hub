@@ -41,7 +41,7 @@ export interface IGitTag {
     url: string;
 }
 
-export const TEMPLATE_CATEGORIES = [
+export const DEFAULT_ARCHETYPES = [
     "Azure Container Apps",
     "Azure Functions",
     "Azure Kubernetes Service",

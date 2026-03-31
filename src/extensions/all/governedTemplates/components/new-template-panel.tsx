@@ -8,7 +8,8 @@ import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { MessageBar, MessageBarSeverity } from "azure-devops-ui/MessageBar";
 import { FormItem } from "azure-devops-ui/FormItem";
-import { TEMPLATE_CATEGORIES } from "../../../shared/schemas";
+import { Pill, PillSize, PillVariant } from "azure-devops-ui/Pill";
+import { PillGroup } from "azure-devops-ui/PillGroup";
 import TemplateService from "../../../shared/services/template-service";
 
 interface NewTemplatePanelProps {
@@ -25,13 +26,13 @@ interface IState {
     projectId: string;
     projectName: string;
     repos: Array<{ id: string; name: string }>;
+    archetypes: string[];
     loadingRepos: boolean;
     saving: boolean;
     error: string;
 }
 
 class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
-    private categorySelection = new DropdownSelection();
     private repoSelection = new DropdownSelection();
 
     constructor(props: NewTemplatePanelProps) {
@@ -39,12 +40,13 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
         this.state = {
             name: "",
             description: "",
-            category: TEMPLATE_CATEGORIES[0],
+            category: "",
             repositoryId: "",
             repoName: "",
             projectId: "",
             projectName: "",
             repos: [],
+            archetypes: [],
             loadingRepos: true,
             saving: false,
             error: "",
@@ -53,7 +55,11 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
 
     public async componentDidMount() {
         try {
-            const project = await this.props.templateService.getCurrentProjectInfo();
+            const [project, archetypes] = await Promise.all([
+                this.props.templateService.getCurrentProjectInfo(),
+                this.props.templateService.getArchetypes(),
+            ]);
+            this.setState({ archetypes });
             if (project) {
                 const repos = await this.props.templateService.getRepositories(project.id);
                 this.setState({
@@ -66,13 +72,13 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                 this.setState({ loadingRepos: false, error: "Could not determine current project." });
             }
         } catch (error) {
-            this.setState({ loadingRepos: false, error: "Failed to load repositories." });
+            this.setState({ loadingRepos: false, error: "Failed to load data." });
         }
     }
 
     private isValid(): boolean {
-        const { name, repositoryId, saving } = this.state;
-        return name.trim().length > 0 && repositoryId.length > 0 && !saving;
+        const { name, repositoryId, category, saving } = this.state;
+        return name.trim().length > 0 && repositoryId.length > 0 && category.trim().length > 0 && !saving;
     }
 
     private handleCreate = async () => {
@@ -80,8 +86,11 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
         this.setState({ saving: true, error: "" });
         try {
             const { name, description, category, repositoryId, repoName, projectId, projectName } = this.state;
+            const trimmedCategory = category.trim();
+            // Save new archetype if it doesn't exist yet
+            await this.props.templateService.addArchetype(trimmedCategory);
             await this.props.templateService.createTemplate(
-                name.trim(), description.trim(), category,
+                name.trim(), description.trim(), trimmedCategory,
                 repositoryId, repoName, projectId, projectName
             );
             this.props.onDismiss(true);
@@ -90,10 +99,32 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
         }
     };
 
+    private renderArchetypeSuggestions(): JSX.Element | null {
+        const { archetypes, category } = this.state;
+        const filtered = category.trim()
+            ? archetypes.filter(a => a.toLowerCase().includes(category.toLowerCase()))
+            : archetypes;
+
+        if (filtered.length === 0) return null;
+
+        return (
+            <PillGroup>
+                {filtered.map(a => (
+                    <Pill
+                        key={a}
+                        size={PillSize.compact}
+                        variant={a === category ? PillVariant.colored : PillVariant.outlined}
+                        onClick={() => this.setState({ category: a })}
+                    >
+                        {a}
+                    </Pill>
+                ))}
+            </PillGroup>
+        );
+    }
+
     public render(): JSX.Element {
         const { name, description, repos, loadingRepos, saving, error, category } = this.state;
-
-        const categoryItems: IListBoxItem[] = TEMPLATE_CATEGORIES.map(c => ({ id: c, text: c }));
         const repoItems: IListBoxItem[] = repos.map(r => ({ id: r.id, text: r.name }));
 
         return (
@@ -132,14 +163,16 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                         />
                     </FormItem>
 
-                    <FormItem label="Category">
-                        <Dropdown
-                            items={categoryItems}
-                            selection={this.categorySelection}
-                            placeholder="Select category"
-                            className="flex-grow"
-                            onSelect={(_, item) => this.setState({ category: item.id! })}
+                    <FormItem label="Archetype *" message="Select an existing archetype or type a new one">
+                        <TextField
+                            value={category}
+                            onChange={(_, val) => this.setState({ category: val })}
+                            placeholder="Type or select an archetype"
+                            width={TextFieldWidth.standard}
                         />
+                        <div style={{ marginTop: 8 }}>
+                            {this.renderArchetypeSuggestions()}
+                        </div>
                     </FormItem>
 
                     <FormItem label="Repository *">
