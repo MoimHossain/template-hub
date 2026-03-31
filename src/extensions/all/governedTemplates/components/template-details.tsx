@@ -9,6 +9,7 @@ import { ZeroData } from "azure-devops-ui/ZeroData";
 import { Table, renderSimpleCell, ISimpleTableCell, ColumnMore, TableColumnLayout } from "azure-devops-ui/Table";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { ITableColumn } from "azure-devops-ui/Table";
+import { Card } from "azure-devops-ui/Card";
 import { IGovernedTemplate, ITemplateVersion } from "../../../shared/schemas";
 
 const TAB_GENERAL = "general";
@@ -236,8 +237,10 @@ const TemplateDetails: React.FC<TemplateDetailsProps> = (props) => {
                 <Tab id={TAB_GENERAL} name="General" />
                 <Tab id={TAB_VERSIONS} name={`Versions (${(template.versions || []).length})`} />
             </TabBar>
-            <div className="flex-column flex-grow v-scroll-auto" style={{ padding: 16 }}>
-                {selectedTab === TAB_GENERAL ? renderGeneralTab() : renderVersionsTab()}
+            <div className="flex-column flex-grow v-scroll-auto" style={{ padding: "8px 16px" }}>
+                <Card className="flex-grow">
+                    {selectedTab === TAB_GENERAL ? renderGeneralTab() : renderVersionsTab()}
+                </Card>
             </div>
         </div>
     );

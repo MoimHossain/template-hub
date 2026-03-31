@@ -14,6 +14,7 @@ import {
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { Pill, PillSize, PillVariant } from "azure-devops-ui/Pill";
 import { ListSelection } from "azure-devops-ui/List";
+import { Card } from "azure-devops-ui/Card";
 import { IGovernedTemplate } from "../../../shared/schemas";
 
 interface TemplateListProps {
@@ -167,8 +168,10 @@ const TemplateList: React.FC<TemplateListProps> = (props) => {
                 titleSize={TitleSize.Medium}
                 commandBarItems={commandBarItems}
             />
-            <div className="flex-column flex-grow v-scroll-auto">
-                {renderContent()}
+            <div className="flex-column flex-grow v-scroll-auto" style={{ padding: "8px 16px" }}>
+                <Card className="flex-grow">
+                    {renderContent()}
+                </Card>
             </div>
         </div>
     );
