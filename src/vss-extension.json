@@ -1,0 +1,52 @@
+{
+    "manifestVersion": 1,
+    "id": "template-hub",
+    "publisher": "MoimHossain",
+    "version": "0.0.1",
+    "name": "Template Hub",
+    "description": "Azure DevOps extension for managing and governing templates across your organization.",
+    "public": false,
+    "categories": [
+        "Azure Repos"
+    ],
+    "icons": {
+        "default": "assets/images/ext-logo.png"
+    },
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "scopes": [
+        "vso.project",
+        "vso.extension.data_write"
+    ],
+    "contributions": [
+        {
+            "id": "organization-settings-hub",
+            "type": "ms.vss-web.hub",
+            "targets": [
+                "ms.vss-web.collection-admin-hub-group"
+            ],
+            "properties": {
+                "order": 1,
+                "icon": {
+                    "light": "assets/images/settings.png",
+                    "dark": "assets/images/settings.png"
+                },
+                "name": "Template Hub",
+                "uri": "dist/organizationSettings/index.html"
+            }
+        }
+    ],
+    "files": [
+        {
+            "path": "assets",
+            "addressable": true
+        },
+        {
+            "path": "dist",
+            "addressable": true
+        }
+    ]
+}
