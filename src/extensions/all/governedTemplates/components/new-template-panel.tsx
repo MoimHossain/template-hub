@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Panel } from "azure-devops-ui/Panel";
+import { ContentSize } from "azure-devops-ui/Callout";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { DropdownSelection } from "azure-devops-ui/Utilities/DropdownSelection";
@@ -100,6 +101,7 @@ class NewTemplatePanel extends React.Component<NewTemplatePanelProps, IState> {
                 onDismiss={() => this.props.onDismiss(false)}
                 titleProps={{ text: "New Governed Template" }}
                 description="Register a pipeline template repository"
+                size={ContentSize.Large}
                 footerButtonProps={[
                     { text: "Cancel", onClick: () => this.props.onDismiss(false) },
                     { text: "Create", primary: true, onClick: this.handleCreate, disabled: !this.isValid() },

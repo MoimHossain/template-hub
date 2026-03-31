@@ -110,7 +110,7 @@ const TemplateList: React.FC<TemplateListProps> = (props) => {
     return (
         <div className="flex-column flex-grow">
             <Header
-                title="Governed Templates"
+                title="One Template (ING)"
                 titleSize={TitleSize.Medium}
                 commandBarItems={commandBarItems}
             />

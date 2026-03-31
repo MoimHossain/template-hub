@@ -4,6 +4,13 @@
     display: flex;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
 .page-content {
     padding: 24px;
     width: 100%;
@@ -226,6 +233,22 @@
     background: rgba(255, 255, 255, 0.04);
     font-family: monospace;
     font-size: 12px;
+}
+
+/* Panel form controls */
+.bolt-panel-content .bolt-textfield,
+.bolt-panel-content .bolt-dropdown,
+.bolt-panel-content .bolt-formitem {
+    width: 100%;
+}
+
+.bolt-panel-content .bolt-textfield input,
+.bolt-panel-content .bolt-textfield textarea {
+    width: 100%;
+}
+
+.bolt-panel-content .bolt-dropdown {
+    min-width: 100%;
 }
 
 .v-scroll-auto {

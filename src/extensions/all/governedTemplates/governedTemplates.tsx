@@ -156,8 +156,9 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
 
         return (
             <Surface background={SurfaceBackground.neutral}>
+                <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
                 <Page className="flex-column flex-grow">
-                    <div className="flex-grow" style={{ height: "100%" }}>
+                    <div className="flex-grow" style={{ height: "100%", minHeight: 0 }}>
                         <Splitter
                             collapsed={collapsed}
                             fixedElement={SplitterElementPosition.Near}
@@ -193,6 +194,7 @@ class GovernedTemplatesHub extends React.Component<{}, IState> {
                         />
                     </div>
                 </Page>
+                </div>
 
                 {showNewTemplatePanel && (
                     <NewTemplatePanel

@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "template-hub",
     "publisher": "MoimHossain",
-    "version": "0.0.3",
+    "version": "0.0.5",
     "name": "Template Hub",
     "description": "Azure DevOps extension for managing and governing templates across your organization.",
     "public": false,
@@ -52,7 +52,7 @@
                     "light": "assets/images/governance.png",
                     "dark": "assets/images/governance.png"
                 },
-                "name": "Governed Templates",
+                "name": "One Template (ING)",
                 "uri": "dist/governedTemplates/index.html"
             }
         }
